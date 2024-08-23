@@ -9,13 +9,25 @@ async fn translate_md_ast<'a>(ast: &'a AstNode<'a>, from_lang: &str, to_lang: &s
     let config = aws_config::load_defaults(BehaviorVersion::latest()).await;
     let translate = aws_sdk_translate::Client::new(&config);
     for node in ast.descendants() {
-
-        if let NodeValue::Text(ref mut text) = node.data.borrow_mut().value {
+        let mut node_value = node.data.borrow_mut();
+        if let NodeValue::Text(ref mut text) = node_value.value {
             let result = translate.translate_text()
                 .set_target_language_code(Some(to_lang.to_string()))
                 .set_source_language_code(Some(from_lang.to_string()))
                 .text(text.clone()).send().await.unwrap();
             *text = result.translated_text;
+        } else if let NodeValue::CodeBlock(ref mut code) = node_value.value {
+            let result = translate.translate_text()
+                .set_target_language_code(Some(to_lang.to_string()))
+                .set_source_language_code(Some(from_lang.to_string()))
+                .text(code.literal.clone()).send().await.unwrap();
+            code.literal = result.translated_text;
+        } else if let NodeValue::Code(ref mut code) = node_value.value {
+            let result = translate.translate_text()
+                .set_target_language_code(Some(to_lang.to_string()))
+                .set_source_language_code(Some(from_lang.to_string()))
+                .text(code.literal.clone()).send().await.unwrap();
+            code.literal = result.translated_text;
         }
     }
 }

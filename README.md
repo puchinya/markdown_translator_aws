@@ -10,8 +10,14 @@ markdown_translator < マークダウンテキストファイル(.md)
 # 翻訳テスト
 
 コード
+```javascript
+ABCDEF あいうえお
 ```
-ABCDEF
+
+```plantuml
+@startuml
+Bob->Alice: アイテム
+@enduml
 ```
 
 リスト
